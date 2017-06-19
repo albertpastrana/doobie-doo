@@ -1,6 +1,6 @@
 package com.intenthq.doobie
 
-import doobie.util.invariant.NonNullableParameter
+import doobie.util.invariant.{UnexpectedContinuation, UnexpectedEnd}
 
 class DooSpec extends DbSpecification {
 
@@ -23,7 +23,7 @@ class DooSpec extends DbSpecification {
         Doo.companyTuples must beRight(
           be_===(List(("Another Company", None), ("Intent HQ", Some("https://www.intenthq.com"))))
         )
-      }.pendingUntilFixed
+      }
 
     }
 
@@ -36,11 +36,11 @@ class DooSpec extends DbSpecification {
             intentHQ
           ))
         )
-      }.pendingUntilFixed
+      }
 
       "should find a single company" >> {
         Doo.companyCaseClass(intentHQ.id) must beRight(beSome(intentHQ))
-      }.pendingUntilFixed
+      }
 
     }
 
@@ -50,7 +50,7 @@ class DooSpec extends DbSpecification {
         val name = "Very Company"
         Doo.createCompany(name) must beRight[CompanyId]
         Doo.companyNames.exists(_.contains(name)) must beTrue
-      }.pendingUntilFixed
+      }
 
     }
 
@@ -66,7 +66,7 @@ class DooSpec extends DbSpecification {
             names must not(contain(name))
           }
         }
-      }.pendingUntilFixed
+      }
 
     }
 
@@ -78,7 +78,7 @@ class DooSpec extends DbSpecification {
       Doo.jobOffersTuples must beRight { offers: List[(String, String)] =>
         offers must contain(("Intent HQ", "Software Engineer"))
       }
-    }.pendingUntilFixed
+    }
 
     "as case classes" >> {
       Doo.jobOffersCaseClasses must beRight { offers: List[JobOffer] =>
@@ -89,7 +89,7 @@ class DooSpec extends DbSpecification {
             Company(CompanyId(1), "Intent HQ", Some("https://www.intenthq.com")))
         )
       }
-    }.pendingUntilFixed
+    }
 
   }
 
@@ -106,37 +106,33 @@ class DooSpec extends DbSpecification {
           )
         }
       }
-    }.pendingUntilFixed
+    }
 
   }
 
   "other interesting things" >> {
-//    import doobie.imports._
-
-    "setting null in a non nullable parameter throws an exception!" >> {
-      Doo.createCompany(null) must throwAn[NonNullableParameter]
-    }.pendingUntilFixed
+    import doobie.implicits._
 
     "asking for a single result if the query returns more than one row returns an error" >> {
-//      Doo.Q.companyCaseClasses.option.transact(dbContext.xa).attempt
-//        .unsafePerformIO must beLeft(UnexpectedContinuation)
-//      Doo.Q.companyCaseClasses.unique.transact(dbContext.xa).attempt
-//        .unsafePerformIO must beLeft(UnexpectedContinuation)
-      pending
+      Doo.Q.companyCaseClasses.option.transact(dbContext.xa).attempt
+        .unsafeRunSync() must beLeft(UnexpectedContinuation)
+      Doo.Q.companyCaseClasses.unique.transact(dbContext.xa).attempt
+        .unsafeRunSync() must beLeft(UnexpectedContinuation)
     }
 
     "asking for a unique result if the query returns an empty resultset returns an error" >> {
-//      Doo.Q.companyCaseClass(CompanyId(-1000)).unique.transact(dbContext.xa).attempt
-//        .unsafePerformIO must beLeft(UnexpectedEnd)
-      pending
+      Doo.Q.companyCaseClass(CompanyId(-1000)).unique.transact(dbContext.xa).attempt
+        .unsafeRunSync() must beLeft(UnexpectedEnd)
     }
 
     "how about little bobby tables?" >> {
       Doo.createCompany("Robert'); DROP TABLE companies;--") must beRight[CompanyId]
-    }.pendingUntilFixed
+    }
 
     "check" >> {
       check(Doo.Q.companyNames)
+      check(Doo.Q.createCompany("doo"))
+      check(Doo.Q.updateCompanyName(CompanyId(1), "doo"))
     }
   }
 

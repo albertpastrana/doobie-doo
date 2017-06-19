@@ -10,6 +10,39 @@ object Doo {
 
     val companyNames: Query0[String] = sql"SELECT name FROM companies ORDER BY name ASC".query
 
+    def createCompany(name: String): Update0 =
+      sql"INSERT INTO companies (name) VALUES ($name)".update
+
+    def updateCompanyName(id: CompanyId, name: String): Update0 =
+      sql"UPDATE companies SET name = $name WHERE id = $id".update
+
+    val companyTuples: Query0[(String, Option[String])] =
+      sql"SELECT name, website FROM companies ORDER BY name ASC".query
+
+    val companyCaseClasses: Query0[Company] =
+      sql"SELECT id, name, website FROM companies ORDER BY name ASC".query
+
+    def companyCaseClass(id: CompanyId): Query0[Company] =
+      sql"SELECT * FROM companies WHERE id = $id".query
+
+    val jobOffersTuples: Query0[(String, String)] =
+      sql"""
+        SELECT c.name, j.summary
+        FROM companies c, job_offers j
+        WHERE c.id = j.company_id
+        ORDER BY c.name ASC""".query
+
+    val jobOffersCaseClasses: Query0[JobOffer] =
+      sql"""
+        SELECT j.id, j.summary, j.description, c.*
+        FROM companies c, job_offers j
+        WHERE c.id = j.company_id
+        ORDER BY c.name ASC""".query
+
+    def createJobOffer(companyId: CompanyId, summary: String, description: String): Update0 =
+      sql"""
+        INSERT INTO job_offers (company_id, summary, description)
+        VALUES ($companyId, $summary, $description)""".update
   }
 
   def companyNames(implicit dbContext: DbContext): Either[DbError, List[String]] = {
@@ -28,21 +61,36 @@ object Doo {
   def companyNamesOneLiner(implicit dbContext: DbContext): Either[DbError, List[String]] =
     Q.companyNames.to[List].performTransact
 
-  def createCompany(name: String): Either[DbError, CompanyId] = ???
+  def createCompany(name: String)(implicit dbContext: DbContext): Either[DbError, CompanyId] =
+    Q.createCompany(name)
+      .withUniqueGeneratedKeys[CompanyId]("id")
+      .performTransact
 
-  def updateCompanyName(id: CompanyId, name: String): Either[DbError, Int] = ???
+  def updateCompanyName(id: CompanyId, name: String)(implicit dbContext: DbContext): Either[DbError, Int] =
+    Q.updateCompanyName(id, name).run.performTransact
 
-  def companyTuples: Either[DbError, List[(String, Option[String])]] = ???
+  def companyTuples(implicit dbContext: DbContext): Either[DbError, List[(String, Option[String])]] =
+    Q.companyTuples.to[List].performTransact
 
-  def companyCaseClasses: Either[DbError, List[Company]] = ???
+  def companyCaseClasses(implicit dbContext: DbContext): Either[DbError, List[Company]] =
+    Q.companyCaseClasses.to[List].performTransact
 
-  def companyCaseClass(id: CompanyId): Either[DbError, Option[Company]] = ???
+  def companyCaseClass(id: CompanyId)(implicit dbContext: DbContext): Either[DbError, Option[Company]] =
+    Q.companyCaseClass(id).option.performTransact
 
-  def jobOffersTuples: Either[DbError, List[(String, String)]] = ???
+  def jobOffersTuples(implicit dbContext: DbContext): Either[DbError, List[(String, String)]] =
+    Q.jobOffersTuples.to[List].performTransact
 
-  def jobOffersCaseClasses: Either[DbError, List[JobOffer]] = ???
+  def jobOffersCaseClasses(implicit dbContext: DbContext): Either[DbError, List[JobOffer]] =
+    Q.jobOffersCaseClasses.to[List].performTransact
 
-  def createJobOffer(companyName: String, offerSummary: String, offerDescription: String): Either[DbError, (CompanyId, JobOfferId)] = ???
+  def createJobOffer(companyName: String, offerSummary: String, offerDescription: String)
+                    (implicit dbContext: DbContext): Either[DbError, (CompanyId, JobOfferId)] = {
+    (for {
+      cid <- Q.createCompany(companyName).withUniqueGeneratedKeys[CompanyId]("id")
+      joid <- Q.createJobOffer(cid, offerSummary, offerDescription).withUniqueGeneratedKeys[JobOfferId]("id")
+    } yield (cid, joid)).performTransact
+  }
 
   implicit class ConnectionIOOps[A](cio: ConnectionIO[A]) {
     def performTransact(implicit dbContext: DbContext): Either[DbError, A] =

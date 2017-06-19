@@ -30,7 +30,7 @@ class DbSpecification extends Specification with IOChecker with AfterAll {
   // Locally you can modify them using something like https://direnv.net/
   private lazy val dbConfig = DbConfig(
     Properties.envOrElse("DB_HOST", "localhost"),
-    Properties.envOrElse("DB_PORT", "5433"),
+    Properties.envOrElse("DB_PORT", "5432"),
     Properties.envOrNone("DB_NAME"),
     Properties.envOrElse("DB_USERNAME", "postgres"),
     Properties.envOrElse("DB_PASSWORD", "mysecretpassword"),
