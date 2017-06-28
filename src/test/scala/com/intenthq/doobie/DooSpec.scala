@@ -131,8 +131,14 @@ class DooSpec extends DbSpecification {
 
     "check" >> {
       check(Doo.Q.companyNames)
-      check(Doo.Q.createCompany("doo"))
-      check(Doo.Q.updateCompanyName(CompanyId(1), "doo"))
+      check(Doo.Q.createCompany("name"))
+      check(Doo.Q.updateCompanyName(CompanyId(1), "name"))
+      check(Doo.Q.companyTuples)
+      check(Doo.Q.companyCaseClasses)
+      check(Doo.Q.companyCaseClass(CompanyId(1)))
+      check(Doo.Q.jobOffersTuples)
+      check(Doo.Q.jobOffersCaseClasses)
+      check(Doo.Q.createJobOffer(CompanyId(1), "summary", "description"))
     }
   }
 
