@@ -132,12 +132,19 @@ class DooSpec extends DbSpecification {
     "how about little bobby tables?" >> {
       Doo.createCompany("Robert'); DROP TABLE companies;--") must beRight[CompanyId]
     }
+
+    "check" >> {
+      check(Doo.Q.companyNames)
+      check(Doo.Q.createCompany("name"))
+      check(Doo.Q.updateCompanyName(CompanyId(1), "name"))
+      check(Doo.Q.companyTuples)
+      check(Doo.Q.companyCaseClasses)
+      check(Doo.Q.companyCaseClass(CompanyId(1)))
+      check(Doo.Q.jobOffersTuples)
+      check(Doo.Q.jobOffersCaseClasses)
+      check(Doo.Q.createJobOffer(CompanyId(1), "summary", "description"))
+    }
   }
 
-  //  "check" >> {
-  //    check(Doo.Q.companyNames)
-  //    check(Doo.Q.insertCompany("doo"))
-  //    check(Doo.Q.updateCompany(1, "doo"))
-  //  }
 
 }
