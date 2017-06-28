@@ -134,6 +134,10 @@ class DooSpec extends DbSpecification {
     "how about little bobby tables?" >> {
       Doo.createCompany("Robert'); DROP TABLE companies;--") must beRight[CompanyId]
     }
+
+    "check" >> {
+      check(Doo.Q.companyNames)
+    }
   }
 
 }
