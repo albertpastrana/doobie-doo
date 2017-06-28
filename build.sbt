@@ -36,5 +36,5 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-hikari-cats" % versions.doobie,
   "org.tpolecat" %% "doobie-postgres-cats" % versions.doobie,
   "org.tpolecat" %% "doobie-specs2-cats" % versions.doobie % "test",
-  "org.specs2" %% "specs2-core" % "3.9.1" % "test"
+  "org.specs2" %% "specs2-core" % "3.8.9" % "test"
 )
