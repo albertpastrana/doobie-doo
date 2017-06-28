@@ -23,7 +23,7 @@ class DooSpec extends DbSpecification {
         Doo.companyTuples must beRight(
           be_===(List(("Another Company", None), ("Intent HQ", Some("https://www.intenthq.com"))))
         )
-      }
+      }.pendingUntilFixed
 
     }
 
@@ -36,11 +36,11 @@ class DooSpec extends DbSpecification {
             intentHQ
           ))
         )
-      }
+      }.pendingUntilFixed
 
       "should find a single company" >> {
         Doo.companyCaseClass(intentHQ.id) must beRight(beSome(intentHQ))
-      }
+      }.pendingUntilFixed
 
     }
 
@@ -50,7 +50,7 @@ class DooSpec extends DbSpecification {
         val name = "Very Company"
         Doo.createCompany(name) must beRight[CompanyId]
         Doo.companyNames.exists(_.contains(name)) must beTrue
-      }
+      }.pendingUntilFixed
 
     }
 
@@ -66,7 +66,7 @@ class DooSpec extends DbSpecification {
             names must not(contain(name))
           }
         }
-      }
+      }.pendingUntilFixed
 
     }
 
@@ -78,7 +78,7 @@ class DooSpec extends DbSpecification {
       Doo.jobOffersTuples must beRight { offers: List[(String, String)] =>
         offers must contain(("Intent HQ", "Software Engineer"))
       }
-    }
+    }.pendingUntilFixed
 
     "as case classes" >> {
       Doo.jobOffersCaseClasses must beRight { offers: List[JobOffer] =>
@@ -89,7 +89,7 @@ class DooSpec extends DbSpecification {
             Company(CompanyId(1), "Intent HQ", Some("https://www.intenthq.com")))
         )
       }
-    }
+    }.pendingUntilFixed
 
   }
 
@@ -106,7 +106,7 @@ class DooSpec extends DbSpecification {
           )
         }
       }
-    }
+    }.pendingUntilFixed
 
   }
 
@@ -115,7 +115,7 @@ class DooSpec extends DbSpecification {
 
     "setting null in a non nullable parameter throws an exception!" >> {
       Doo.createCompany(null) must throwAn[NonNullableParameter]
-    }
+    }.pendingUntilFixed
 
     "asking for a single result if the query returns more than one row returns an error" >> {
 //      Doo.Q.companyCaseClasses.option.transact(dbContext.xa).attempt
@@ -133,7 +133,7 @@ class DooSpec extends DbSpecification {
 
     "how about little bobby tables?" >> {
       Doo.createCompany("Robert'); DROP TABLE companies;--") must beRight[CompanyId]
-    }
+    }.pendingUntilFixed
 
     "check" >> {
       check(Doo.Q.companyNames)
