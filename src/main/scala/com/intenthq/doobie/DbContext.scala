@@ -1,7 +1,8 @@
 package com.intenthq.doobie
 
-import doobie.hikari.imports._
-import doobie.imports._
+import cats.effect.IO
+import doobie.hikari._
+import doobie._
 import org.flywaydb.core.Flyway
 
 import scala.util.Try
@@ -17,7 +18,7 @@ object DbContext {
   def load(config: DbConfig): Either[Throwable, DbContext] = for {
     _ <- migrateDB(config)
     xa <- createPool(config)
-  } yield DbContext(xa, xa.shutdown)
+  } yield DbContext(xa, () => xa.kernel.close())
 
   def migrateDB(config: DbConfig): Either[Throwable, Int] = Try {
     val flyway = new Flyway()
@@ -27,9 +28,9 @@ object DbContext {
     flyway.migrate()
   }.toEither
 
-  private def createPool(config: DbConfig): Either[Throwable, HikariTransactor[IOLite]] =
-    HikariTransactor[IOLite]("org.postgresql.Driver", config.url, config.username, config.password)
-      .attempt.unsafePerformIO
+  private def createPool(config: DbConfig): Either[Throwable, HikariTransactor[IO]] =
+    HikariTransactor.newHikariTransactor[IO]("org.postgresql.Driver", config.url, config.username, config.password)
+      .attempt.unsafeRunSync()
 }
 
-case class DbContext(xa: Transactor[IOLite], shutdown: IOLite[Unit])
+case class DbContext(xa: Transactor[IO], shutdown: () => Unit)

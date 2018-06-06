@@ -1,32 +1,32 @@
 package com.intenthq.doobie
 
 import doobie.free.connection.ConnectionIO
-import doobie.imports._
+import doobie.implicits._
+import doobie._
 
 object Doo {
 
   private[doobie] object Q {
 
-    val companyNames: Query0[String] =
-      sql"SELECT name FROM companies ORDER BY name ASC".query
+    val companyNames: Query0[String] = sql"SELECT name FROM companies ORDER BY name ASC".query
 
   }
 
-    def companyNames(implicit dbContext: DbContext): Either[DbError, List[String]] = {
-      // Defines a Query0[String], which is a one-column query that maps each returned row to a String
-      val query: Query0[String] = sql"SELECT name FROM companies ORDER BY name ASC".query[String]
-      // list is a convenience method that streams the results, accumulating them in a List,
-      // in this case yielding a ConnectionIO[List[String]]
-      val io: ConnectionIO[List[String]] = query.list
-      // transact(xa) yields a Task[List[String]] which we run, giving us a normal Scala List[String]
-      val result: Either[Throwable, List[String]] = io.transact(dbContext.xa).attempt.unsafePerformIO
-      // We handle the error in here and transform it into our own error type
-      result.left.map(DbError.from)
-    }
+  def companyNames(implicit dbContext: DbContext): Either[DbError, List[String]] = {
+    // Defines a Query0[String], which is a one-column query that maps each returned row to a String
+    val query: Query0[String] = sql"SELECT name FROM companies ORDER BY name ASC".query[String]
+    // list is a convenience method that streams the results, accumulating them in a List,
+    // in this case yielding a ConnectionIO[List[String]]
+    val io: ConnectionIO[List[String]] = query.to[List]
+    // transact(xa) yields a Task[List[String]] which we run, giving us a normal Scala List[String]
+    val result: Either[Throwable, List[String]] = io.transact(dbContext.xa).attempt.unsafeRunSync()
+    // We handle the error in here and transform it into our own error type
+    result.left.map(DbError.from)
+  }
 
 
   def companyNamesOneLiner(implicit dbContext: DbContext): Either[DbError, List[String]] =
-    Q.companyNames.list.performTransact
+    Q.companyNames.to[List].performTransact
 
   def createCompany(name: String): Either[DbError, CompanyId] = ???
 
@@ -46,7 +46,7 @@ object Doo {
 
   implicit class ConnectionIOOps[A](cio: ConnectionIO[A]) {
     def performTransact(implicit dbContext: DbContext): Either[DbError, A] =
-      cio.transact(dbContext.xa).attempt.unsafePerformIO.left.map(DbError.from)
+      cio.transact(dbContext.xa).attempt.unsafeRunSync.left.map(DbError.from)
   }
 
 }
@@ -59,11 +59,7 @@ case class JobOfferId(value: Long) extends AnyVal
 
 case class JobOffer(id: JobOfferId, summary: String, description: String, company: Company)
 
-case class DbError(cause: Throwable) extends Exception {
-  override def getMessage: String = cause.getMessage
-
-  override def getCause: Throwable = cause
-}
+case class DbError(cause: Throwable) extends Exception(cause)
 
 object DbError {
 
