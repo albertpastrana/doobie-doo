@@ -1,0 +1,12 @@
+.reveal pre code {
+  max-height: 600px;
+}
+
+.reveal section img {
+  border: 0
+}
+
+.reveal *.small {
+  font-size: 60%;
+}
+
