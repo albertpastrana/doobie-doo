@@ -1,7 +1,5 @@
 package com.intenthq.doobie
 
-import doobie.util.invariant.NonNullableParameter
-
 class DooSpec extends DbSpecification {
 
   private val intentHQ = Company(CompanyId(1), "Intent HQ", Some("https://www.intenthq.com"))
@@ -112,10 +110,6 @@ class DooSpec extends DbSpecification {
 
   "other interesting things" >> {
 //    import doobie.imports._
-
-    "setting null in a non nullable parameter throws an exception!" >> {
-      Doo.createCompany(null) must throwAn[NonNullableParameter]
-    }.pendingUntilFixed
 
     "asking for a single result if the query returns more than one row returns an error" >> {
 //      Doo.Q.companyCaseClasses.option.transact(dbContext.xa).attempt
