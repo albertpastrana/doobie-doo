@@ -109,19 +109,20 @@ class DooSpec extends DbSpecification {
   }
 
   "other interesting things" >> {
-//    import doobie.imports._
+//    import doobie.implicits._
+//    import doobie.util.invariant.{UnexpectedContinuation, UnexpectedEnd}
 
     "asking for a single result if the query returns more than one row returns an error" >> {
 //      Doo.Q.companyCaseClasses.option.transact(dbContext.xa).attempt
-//        .unsafePerformIO must beLeft(UnexpectedContinuation)
+//        .unsafeRunSync must beLeft(UnexpectedContinuation)
 //      Doo.Q.companyCaseClasses.unique.transact(dbContext.xa).attempt
-//        .unsafePerformIO must beLeft(UnexpectedContinuation)
+//        .unsafeRunSync must beLeft(UnexpectedContinuation)
       pending
     }
 
     "asking for a unique result if the query returns an empty resultset returns an error" >> {
 //      Doo.Q.companyCaseClass(CompanyId(-1000)).unique.transact(dbContext.xa).attempt
-//        .unsafePerformIO must beLeft(UnexpectedEnd)
+//        .unsafeRunSync must beLeft(UnexpectedEnd)
       pending
     }
 
